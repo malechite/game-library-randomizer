@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
+import { useSockets } from "../hooks/hooks";
 import { GameDisplayCard } from "./GameDisplayCard";
 import gameDataJson from "../data/game_collection.json";
 import { Game } from "../types/Game";
@@ -45,13 +46,12 @@ export const Randomizer = () => {
     }
   };
 
+  useSockets({ onButtonPress: startRandomizing });
+
   return (
     <Container>
       {(isRandomizing || selectedGame) && (
         <GameDisplayCard game={gameData[selectedCardIndex]} />
-      )}
-      {!isRandomizing && (
-        <StartButton onClick={startRandomizing}>Go!</StartButton>
       )}
     </Container>
   );
@@ -67,18 +67,4 @@ const Container = styled.div`
   gap: 20px;
   padding: 20px;
   background-color: #f5f5f5;
-`;
-
-const StartButton = styled.button`
-  background-color: green;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
-  font-size: 16px;
-  &:hover {
-    background-color: darkgreen;
-  }
 `;

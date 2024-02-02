@@ -1,65 +1,111 @@
-import { Gpio } from 'onoff';
+import { Gpio } from "pigpio";
+
+interface GPIOInitOptions {
+  onButtonPress: () => void;
+}
 
 // Setup GPIO pins
-const button = new Gpio(0, 'in', 'rising', { debounceTimeout: 10 });
-const leds = [new Gpio(1, 'out'), new Gpio(2, 'out'), new Gpio(3, 'out')];
-const speaker = new Gpio(4, 'out'); // For the beep, you might need PWM support
+const button = new Gpio(17, {
+  mode: Gpio.INPUT,
+  pullUpDown: Gpio.PUD_UP,
+  alert: true,
+});
+
+const leds = [
+  new Gpio(18, { mode: Gpio.OUTPUT }), // Changed to common GPIO pins
+  new Gpio(23, { mode: Gpio.OUTPUT }),
+  new Gpio(24, { mode: Gpio.OUTPUT }),
+];
+
+const speaker = new Gpio(12, { mode: Gpio.OUTPUT });
 
 // Utility function to sleep for a given number of milliseconds
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const turnOffAllLEDs = () => {
-  leds.forEach(led => led.writeSync(0));
-}
+  leds.forEach((led) => led.digitalWrite(0));
+};
 
 // Turn on a specific LED for a certain amount of milliseconds
 const lightLED = async (ledIndex: number, duration: number) => {
-  leds[ledIndex].writeSync(1);
+  leds[ledIndex].digitalWrite(1);
   await sleep(duration);
-  leds[ledIndex].writeSync(0);
+  leds[ledIndex].digitalWrite(0);
 };
 
 // Spin the LEDs like a roulette wheel
 const spinLEDs = async () => {
-  let speed = 10; // Start with a fast speed (low duration)
-  for (let i = 0; speed <= 500; i = (i + 1) % leds.length) { // Gradually increase the duration/slow down
+  let speed = 50; // Start with a fast speed (low duration)
+  for (let i = 0; speed <= 500; i = (i + 1) % leds.length) {
+    // Gradually increase the duration/slow down
+    playTone(400 + i * 100, speed);
     await lightLED(i, speed);
-    speed *= 1.1; // Increase the "speed" by increasing the delay
+    speed *= 1.05; // Increase the "speed" by increasing the delay
   }
 };
 
 // Blink all LEDs 3 times
 const blinkAllLEDs = async () => {
+  playFanfare();
   for (let i = 0; i < 3; i++) {
-    leds.forEach(led => led.writeSync(1));
+    leds.forEach((led) => led.digitalWrite(1));
     await sleep(500);
-    leds.forEach(led => led.writeSync(0));
+    leds.forEach((led) => led.digitalWrite(0));
     await sleep(500);
   }
 };
 
-const initialize = () => {
-  turnOffAllLEDs();
-  // Listen for the button to be pressed to start the LED roulette
-  button.watch(async (err, value) => {
-    if (err) {
-      console.error('Button watch error', err);
-      return;
+const playTone = async (frequency: number, duration: number) => {
+  speaker.hardwarePwmWrite(frequency, 500000); // 50% duty cycle
+  await sleep(duration).then(() => speaker.hardwarePwmWrite(0, 0));
+};
+
+const playFanfare = async () => {
+  // Extended sequence of notes for a longer fanfare
+  const melody = [
+    { frequency: 392, duration: 150 },
+    { frequency: 369, duration: 150 },
+    { frequency: 311, duration: 150 },
+    { frequency: 220, duration: 150 },
+    { frequency: 207, duration: 150 },
+    { frequency: 329, duration: 150 },
+    { frequency: 415, duration: 150 },
+    { frequency: 523, duration: 250 },
+  ];
+
+  for (const note of melody) {
+    if (note.frequency === 0) {
+      // If frequency is 0, treat as a pause
+      await sleep(note.duration);
+    } else {
+      await playTone(note.frequency, note.duration);
     }
-    if (value === 1) { // Button pressed
+  }
+};
+
+const initialize = ({ onButtonPress }: GPIOInitOptions) => {
+  console.log("init");
+  turnOffAllLEDs();
+  button.glitchFilter(10000);
+
+  button.on("alert", async (level, tick) => {
+    if (level === 0) {
+      onButtonPress();
       await spinLEDs();
       await blinkAllLEDs();
-      // Here you could also trigger the WebSocket message to the React app to start the randomization
     }
   });
 };
 
-// Cleanup on exit
-process.on('SIGINT', () => {
-  button.unexport();
-  leds.forEach(led => led.unexport());
-  speaker.unexport();
-});
+// Cleanup function to be called on SIGINT
+const cleanupOnExit = () => {
+  turnOffAllLEDs();
+  // Clean up speaker (stop any PWM signal)
+  speaker.hardwarePwmWrite(0, 0);
+  process.exit(0);
+};
+
+process.on("SIGINT", cleanupOnExit);
 
 export const GPIO = {
   initialize,
@@ -67,4 +113,6 @@ export const GPIO = {
   lightLED,
   spinLEDs,
   blinkAllLEDs,
+  playTone,
+  playFanfare,
 };
