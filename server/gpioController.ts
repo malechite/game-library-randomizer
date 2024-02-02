@@ -1,38 +1,70 @@
-// gpioController.ts
-import { Gpio } from "onoff";
+import { Gpio } from 'onoff';
 
-// Check if GPIO is available on this system
-const gpioAvailable = Gpio.accessible;
+// Setup GPIO pins
+const button = new Gpio(0, 'in', 'rising', { debounceTimeout: 10 });
+const leds = [new Gpio(1, 'out'), new Gpio(2, 'out'), new Gpio(3, 'out')];
+const speaker = new Gpio(4, 'out'); // For the beep, you might need PWM support
 
-const button = gpioAvailable ? new Gpio(0, "in", "both") : null;
-const led1 = gpioAvailable ? new Gpio(1, "out") : null;
-const led2 = gpioAvailable ? new Gpio(2, "out") : null;
-const led3 = gpioAvailable ? new Gpio(3, "out") : null;
-const speaker = gpioAvailable ? new Gpio(4, "out") : null;
+// Utility function to sleep for a given number of milliseconds
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const setupGPIO = () => {
-  if (!gpioAvailable) {
-    console.log("GPIO not available on this system.");
-    return;
+const turnOffAllLEDs = () => {
+  leds.forEach(led => led.writeSync(0));
+}
+
+// Turn on a specific LED for a certain amount of milliseconds
+const lightLED = async (ledIndex: number, duration: number) => {
+  leds[ledIndex].writeSync(1);
+  await sleep(duration);
+  leds[ledIndex].writeSync(0);
+};
+
+// Spin the LEDs like a roulette wheel
+const spinLEDs = async () => {
+  let speed = 10; // Start with a fast speed (low duration)
+  for (let i = 0; speed <= 500; i = (i + 1) % leds.length) { // Gradually increase the duration/slow down
+    await lightLED(i, speed);
+    speed *= 1.1; // Increase the "speed" by increasing the delay
   }
+};
 
-  // Initial LED state
-  led1?.writeSync(0);
-  led2?.writeSync(0);
-  led3?.writeSync(0);
+// Blink all LEDs 3 times
+const blinkAllLEDs = async () => {
+  for (let i = 0; i < 3; i++) {
+    leds.forEach(led => led.writeSync(1));
+    await sleep(500);
+    leds.forEach(led => led.writeSync(0));
+    await sleep(500);
+  }
+};
 
-  // Example: Turn on an LED
-  // led1?.writeSync(1);
-
-  // Handle cleanup on exit
-  process.on("SIGINT", () => {
-    button?.unexport();
-    led1?.unexport();
-    led2?.unexport();
-    led3?.unexport();
-    speaker?.unexport();
-    process.exit();
+const initialize = () => {
+  turnOffAllLEDs();
+  // Listen for the button to be pressed to start the LED roulette
+  button.watch(async (err, value) => {
+    if (err) {
+      console.error('Button watch error', err);
+      return;
+    }
+    if (value === 1) { // Button pressed
+      await spinLEDs();
+      await blinkAllLEDs();
+      // Here you could also trigger the WebSocket message to the React app to start the randomization
+    }
   });
 };
 
-console.log("GPIO setup complete.");
+// Cleanup on exit
+process.on('SIGINT', () => {
+  button.unexport();
+  leds.forEach(led => led.unexport());
+  speaker.unexport();
+});
+
+export const GPIO = {
+  initialize,
+  turnOffAllLEDs,
+  lightLED,
+  spinLEDs,
+  blinkAllLEDs,
+};
