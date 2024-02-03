@@ -52,7 +52,10 @@ export const Randomizer = () => {
   return (
     <Container>
       {(isRandomizing || selectedGame) && (
-        <GameDisplayCard game={gameData[selectedCardIndex]} />
+        <GameDisplayCard
+          game={gameData[selectedCardIndex]}
+          showArtwork={!isRandomizing}
+        />
       )}
       {isDev && <button onClick={() => startRandomizing()}>Start</button>}
     </Container>

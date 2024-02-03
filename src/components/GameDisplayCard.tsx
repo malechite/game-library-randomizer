@@ -4,9 +4,13 @@ import { Game } from "../types/Game";
 
 interface GameDisplayCardProps {
   game: Game;
+  showArtwork: boolean;
 }
 
-export const GameDisplayCard = ({ game }: GameDisplayCardProps) => {
+export const GameDisplayCard = ({
+  game,
+  showArtwork,
+}: GameDisplayCardProps) => {
   const image = game.Image ? require(`../../assets/${game.Image}`) : null;
   return (
     <Card>
@@ -15,7 +19,7 @@ export const GameDisplayCard = ({ game }: GameDisplayCardProps) => {
       <Value>
         Current Value: <span>${game.YourPrice}</span>
       </Value>
-      {!!image && (
+      {!!image && showArtwork && (
         <ImageContainer>
           <img src={image} alt={game.Title} />
         </ImageContainer>
