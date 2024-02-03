@@ -39,8 +39,7 @@ const lightLED = async (ledIndex: number, duration: number) => {
 
 // Spin the LEDs like a roulette wheel
 const spinLEDs = async () => {
-  if (isAnimating || randomizationInProgress) return;
-  randomizationInProgress = true;
+  if (isAnimating) return;
   isAnimating = true;
   let speed = 50; // Start with a fast speed (low duration)
   keepSpinning = true; // Ensure spinning starts when this function is called
@@ -114,6 +113,8 @@ const initialize = ({ onButtonPress }: GPIOInitOptions) => {
   button.glitchFilter(10000);
 
   button.on("alert", async (level, tick) => {
+    if (randomizationInProgress) return;
+    randomizationInProgress = true;
     if (level === 0) {
       onButtonPress();
       await spinLEDs();
