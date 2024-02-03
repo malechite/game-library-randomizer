@@ -2,7 +2,7 @@ const { exec } = require("child_process");
 
 const turnOff = () => {
   exec(
-    "xset dpms force off",
+    "DISPLAY=:0 xset dpms force off",
     (error: Error | null, stdout: string, stderr: string) => {
       if (error) {
         console.error(`exec error: ${error}`);
@@ -15,7 +15,7 @@ const turnOff = () => {
 
 const turnOn = () => {
   exec(
-    "xset dpms force on",
+    "DISPLAY=:0 xset dpms force on",
     (error: Error | null, stdout: string, stderr: string) => {
       if (error) {
         console.error(`exec error: ${error}`);
