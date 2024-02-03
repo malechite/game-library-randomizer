@@ -2,6 +2,7 @@
 
 export interface Game {
   Platform: string;
+  PlatformSlug: string;
   Category: string;
   UserRecordType: string;
   Title: string;
