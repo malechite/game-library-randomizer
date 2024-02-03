@@ -7,6 +7,7 @@ interface GameDisplayCardProps {
 }
 
 export const GameDisplayCard = ({ game }: GameDisplayCardProps) => {
+  const image = game.Image ? require(`../../assets/${game.Image}`) : null;
   return (
     <Card>
       <Title>{game.Title}</Title>
@@ -14,6 +15,11 @@ export const GameDisplayCard = ({ game }: GameDisplayCardProps) => {
       <Value>
         Current Value: <span>${game.YourPrice}</span>
       </Value>
+      {!!image && (
+        <ImageContainer>
+          <img src={image} alt={game.Title} />
+        </ImageContainer>
+      )}
       <Detail>
         Developed by {game.Developer}, published by {game.Publisher}.
       </Detail>
@@ -24,10 +30,24 @@ export const GameDisplayCard = ({ game }: GameDisplayCardProps) => {
 const Card = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   padding: 36px;
   height: 100vh;
   width: 100vw;
+`;
+
+const ImageContainer = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 36px;
+  max-height: 50vh;
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
 `;
 
 const Title = styled.h2`

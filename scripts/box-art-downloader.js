@@ -40,7 +40,7 @@ async function fetchGameArt(gameName, platform) {
 // Function to update game data with image paths
 async function updateGameData(gameData) {
   for (const game of gameData) {
-    const imageUrl = await fetchGameArt(game.Title, game.PlatformSlug);
+    const imageUrl = await fetchGameArt(game.Title, game.PlatformId);
     if (imageUrl) {
       console.log(`Updating game data for ${game.Title}...`);
       const imageName = path.basename(imageUrl);

@@ -12,6 +12,9 @@
 /build
 /dist
 
+# assets
+/assets
+
 # misc
 .DS_Store
 .env
