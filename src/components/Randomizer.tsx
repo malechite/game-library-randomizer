@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import { useSockets } from "../hooks/hooks";
+import { useSockets } from "../hooks/useSockets";
 import { GameDisplayCard } from "./GameDisplayCard";
 import gameDataJson from "../data/game_collection.json";
 import { Game } from "../types/Game";
@@ -13,6 +13,7 @@ export const Randomizer = () => {
   const [speed, setSpeed] = useState<number>(10); // Starting interval speed in milliseconds
   const [isRandomizing, setIsRandomizing] = useState<boolean>(false);
   const intervalRef = useRef<NodeJS.Timeout>();
+  const isDev = process.env.NODE_ENV === "development";
 
   const clear = () => clearInterval(intervalRef.current);
 
@@ -53,6 +54,7 @@ export const Randomizer = () => {
       {(isRandomizing || selectedGame) && (
         <GameDisplayCard game={gameData[selectedCardIndex]} />
       )}
+      {isDev && <button onClick={() => startRandomizing()}>Start</button>}
     </Container>
   );
 };
@@ -65,6 +67,5 @@ const Container = styled.div`
   height: 100vh;
   align-items: center;
   gap: 20px;
-  padding: 20px;
-  background-color: #f5f5f5;
+  background-color: #333333;
 `;

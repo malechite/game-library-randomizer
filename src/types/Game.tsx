@@ -11,4 +11,5 @@ export interface Game {
   Developer: string;
   CreatedAt: string;
   Ownership: string;
+  YourPrice: string;
 }
