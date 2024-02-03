@@ -54,8 +54,9 @@ const spinLEDs = async () => {
   }
 };
 
-const stopSpinningLEDs = () => {
+const stopSpinningLEDs = async () => {
   keepSpinning = false; // This will cause the spinLEDs loop to exit
+  await sleep(200); // Wait for a second to ensure the loop has exited
 };
 
 // Blink all LEDs 3 times

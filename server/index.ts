@@ -16,9 +16,9 @@ io.on("connection", (socket) => {
     console.log("Received from client:", data);
   });
 
-  socket.on("gameSelected", (game) => {
+  socket.on("gameSelected", async (game) => {
     console.log("Game selected:", game.Title);
-    GPIO.stopSpinningLEDs();
+    await GPIO.stopSpinningLEDs();
     GPIO.blinkAllLEDs();
   });
 
