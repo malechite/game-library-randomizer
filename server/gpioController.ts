@@ -6,6 +6,7 @@ interface GPIOInitOptions {
 
 let keepSpinning = true;
 let isAnimating = false;
+let randomizationInProgress = false;
 
 // Setup GPIO pins
 const button = new Gpio(17, {
@@ -38,7 +39,8 @@ const lightLED = async (ledIndex: number, duration: number) => {
 
 // Spin the LEDs like a roulette wheel
 const spinLEDs = async () => {
-  if (isAnimating) return;
+  if (isAnimating || randomizationInProgress) return;
+  randomizationInProgress = true;
   isAnimating = true;
   let speed = 50; // Start with a fast speed (low duration)
   keepSpinning = true; // Ensure spinning starts when this function is called
@@ -76,6 +78,7 @@ const blinkAllLEDs = async () => {
     await sleep(500);
   }
   isAnimating = false;
+  randomizationInProgress = false;
 };
 
 const playTone = async (frequency: number, duration: number) => {
