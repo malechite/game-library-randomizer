@@ -1,3 +1,4 @@
+import { Game } from "./../types/Game";
 import { useEffect } from "react";
 import io from "socket.io-client";
 
@@ -21,4 +22,10 @@ export const useSockets = ({ onButtonPress }: SocketOptions) => {
       socket.off("connect");
     };
   }, [onButtonPress]);
+
+  const confirmGameSelection = (game: Game) => {
+    socket.emit("gameSelected", game);
+  };
+
+  return { confirmGameSelection };
 };

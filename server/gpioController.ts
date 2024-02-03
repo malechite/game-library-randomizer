@@ -33,15 +33,29 @@ const lightLED = async (ledIndex: number, duration: number) => {
   leds[ledIndex].digitalWrite(0);
 };
 
+let keepSpinning = true;
+
 // Spin the LEDs like a roulette wheel
 const spinLEDs = async () => {
   let speed = 50; // Start with a fast speed (low duration)
+  keepSpinning = true; // Ensure spinning starts when this function is called
+
   for (let i = 0; speed <= 500; i = (i + 1) % leds.length) {
     // Gradually increase the duration/slow down
     playTone(400 + i * 100, speed);
     await lightLED(i, speed);
     speed *= 1.05; // Increase the "speed" by increasing the delay
+
+    if (!keepSpinning) {
+      break; // Exit the loop if keepSpinning has been set to false
+    }
+
+    turnOffAllLEDs();
   }
+};
+
+const stopSpinningLEDs = () => {
+  keepSpinning = false; // This will cause the spinLEDs loop to exit
 };
 
 // Blink all LEDs 3 times
@@ -84,7 +98,6 @@ const playFanfare = async () => {
 };
 
 const initialize = ({ onButtonPress }: GPIOInitOptions) => {
-  console.log("init");
   turnOffAllLEDs();
   button.glitchFilter(10000);
 
@@ -92,7 +105,6 @@ const initialize = ({ onButtonPress }: GPIOInitOptions) => {
     if (level === 0) {
       onButtonPress();
       await spinLEDs();
-      await blinkAllLEDs();
     }
   });
 };
@@ -112,6 +124,7 @@ export const GPIO = {
   turnOffAllLEDs,
   lightLED,
   spinLEDs,
+  stopSpinningLEDs,
   blinkAllLEDs,
   playTone,
   playFanfare,

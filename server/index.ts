@@ -16,6 +16,12 @@ io.on("connection", (socket) => {
     console.log("Received from client:", data);
   });
 
+  socket.on("gameSelected", (game) => {
+    console.log("Game selected:", game.Title);
+    GPIO.stopSpinningLEDs();
+    GPIO.blinkAllLEDs();
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected");
   });
