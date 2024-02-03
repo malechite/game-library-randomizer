@@ -9,7 +9,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new SocketIO(httpServer);
 const PORT = process.env.PORT || 3000;
-let displayTimer;
+let displayTimer: NodeJS.Timeout;
 
 const startSleepTimer = () => {
   displayTimer = setInterval(() => {
