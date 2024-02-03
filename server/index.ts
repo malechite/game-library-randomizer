@@ -3,11 +3,19 @@ import { createServer } from "http";
 import path from "path";
 import { GPIO } from "./gpioController";
 import { Server as SocketIO } from "socket.io";
+import { Display } from "./displayController";
 
 const app = express();
 const httpServer = createServer(app);
 const io = new SocketIO(httpServer);
 const PORT = process.env.PORT || 3000;
+let displayTimer;
+
+const startSleepTimer = () => {
+  displayTimer = setInterval(() => {
+    Display.turnOff();
+  }, 60000);
+};
 
 io.on("connection", (socket) => {
   console.log("A user connected");
@@ -29,10 +37,13 @@ io.on("connection", (socket) => {
 
 GPIO.initialize({
   onButtonPress: () => {
+    clearInterval(displayTimer);
+    Display.turnOn();
     console.log("on button press");
     io.emit("buttonPressed", {
       /* payload */
     });
+    startSleepTimer();
   },
 });
 
@@ -46,4 +57,12 @@ app.get("*", (req, res) => {
 
 httpServer.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
+});
+
+startSleepTimer();
+
+process.on("SIGINT", () => {
+  clearInterval(displayTimer);
+  Display.turnOn();
+  process.exit(0);
 });
