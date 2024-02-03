@@ -4,6 +4,9 @@ interface GPIOInitOptions {
   onButtonPress: () => void;
 }
 
+let keepSpinning = true;
+let isAnimating = false;
+
 // Setup GPIO pins
 const button = new Gpio(17, {
   mode: Gpio.INPUT,
@@ -33,10 +36,10 @@ const lightLED = async (ledIndex: number, duration: number) => {
   leds[ledIndex].digitalWrite(0);
 };
 
-let keepSpinning = true;
-
 // Spin the LEDs like a roulette wheel
 const spinLEDs = async () => {
+  if (isAnimating) return;
+  isAnimating = true;
   let speed = 50; // Start with a fast speed (low duration)
   keepSpinning = true; // Ensure spinning starts when this function is called
 
@@ -49,18 +52,21 @@ const spinLEDs = async () => {
     if (!keepSpinning) {
       break; // Exit the loop if keepSpinning has been set to false
     }
-
-    turnOffAllLEDs();
   }
+  turnOffAllLEDs();
+  isAnimating = false;
 };
 
 const stopSpinningLEDs = async () => {
   keepSpinning = false; // This will cause the spinLEDs loop to exit
   await sleep(200); // Wait for a second to ensure the loop has exited
+  isAnimating = false;
 };
 
 // Blink all LEDs 3 times
 const blinkAllLEDs = async () => {
+  if (isAnimating) return;
+  isAnimating = true;
   await sleep(500); // Wait for a short moment before playing the fanfare
   playFanfare();
   for (let i = 0; i < 3; i++) {
@@ -69,6 +75,7 @@ const blinkAllLEDs = async () => {
     leds.forEach((led) => led.digitalWrite(0));
     await sleep(500);
   }
+  isAnimating = false;
 };
 
 const playTone = async (frequency: number, duration: number) => {
