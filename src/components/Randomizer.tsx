@@ -67,5 +67,5 @@ const Container = styled.div`
   height: 100vh;
   align-items: center;
   gap: 20px;
-  background-color: #333333;
+  background-color: #111111;
 `;

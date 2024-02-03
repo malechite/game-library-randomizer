@@ -55,6 +55,9 @@ const Value = styled.p`
 `;
 
 const Detail = styled.p`
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
   font-size: 14px;
   font-family: "Play", sans-serif;
   color: #aaa;
