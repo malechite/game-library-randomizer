@@ -61,6 +61,7 @@ const stopSpinningLEDs = async () => {
 
 // Blink all LEDs 3 times
 const blinkAllLEDs = async () => {
+  await sleep(500); // Wait for a short moment before playing the fanfare
   playFanfare();
   for (let i = 0; i < 3; i++) {
     leds.forEach((led) => led.digitalWrite(1));
