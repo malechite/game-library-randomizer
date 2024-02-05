@@ -5,6 +5,7 @@ interface GPIOInitOptions {
 }
 
 let keepSpinning = true;
+let keepBreathing = true;
 let isAnimating = false;
 let randomizationInProgress = false;
 
@@ -80,6 +81,71 @@ const blinkAllLEDs = async () => {
   randomizationInProgress = false;
 };
 
+const breatheLEDs = async () => {
+  if (isAnimating) return;
+  isAnimating = true;
+  keepBreathing = true;
+
+  const maxBrightness = 128; // 50% of 255
+  const step = 5; // Adjust for smoother or faster transitions
+  const delay = 20; // Milliseconds for each step delay
+
+  const breathe = async () => {
+    for (const led of leds) {
+      // Fade in
+      for (
+        let brightness = 0;
+        brightness <= maxBrightness;
+        brightness += step
+      ) {
+        led.pwmWrite(brightness);
+        await sleep(delay);
+      }
+
+      if (!keepBreathing) {
+        turnOffAllLEDs();
+        isAnimating = false;
+        break;
+      }
+
+      // Fade out
+      for (
+        let brightness = maxBrightness;
+        brightness >= 0;
+        brightness -= step
+      ) {
+        led.pwmWrite(brightness);
+        await sleep(delay);
+      }
+      isAnimating = false;
+      await sleep(delay);
+    }
+  };
+
+  while (keepBreathing) {
+    await breathe();
+  }
+
+  if (!keepBreathing) {
+    turnOffAllLEDs(); // Ensure LEDs are turned off if exiting early
+  }
+};
+
+const stopBreathingLEDs = async () => {
+  keepBreathing = false;
+  turnOffAllLEDs();
+  await sleep(200);
+  isAnimating = false;
+};
+
+const testSpin = async () => {
+  await sleep(15000);
+  await spinLEDs();
+  await sleep(1000);
+  await stopSpinningLEDs();
+  await blinkAllLEDs();
+};
+
 const playTone = async (frequency: number, duration: number) => {
   speaker.hardwarePwmWrite(frequency, 500000); // 50% duty cycle
   await sleep(duration).then(() => speaker.hardwarePwmWrite(0, 0));
@@ -109,26 +175,26 @@ const playFanfare = async () => {
 };
 
 const initialize = ({ onButtonPress }: GPIOInitOptions) => {
-  const testSpinAtStartup = async () => {
-    await sleep(30000); //wait for boot up
-    await spinLEDs();
-    await sleep(1000);
-    await blinkAllLEDs();
-  };
-
   turnOffAllLEDs();
   button.glitchFilter(10000);
 
   button.on("alert", async (level, tick) => {
-    if (randomizationInProgress) return;
+    console.log("Button pressed");
+    if (randomizationInProgress) {
+      console.log("Randomization in progress");
+      return;
+    }
+    console.log("Randomization not in progress");
     randomizationInProgress = true;
+    console.log("Level: ", level);
     if (level === 0) {
+      console.log("Level is 0, do action");
       onButtonPress();
       await spinLEDs();
     }
   });
 
-  testSpinAtStartup();
+  testSpin();
 };
 
 // Cleanup function to be called on SIGINT
@@ -148,6 +214,8 @@ export const GPIO = {
   spinLEDs,
   stopSpinningLEDs,
   blinkAllLEDs,
+  breatheLEDs,
+  stopBreathingLEDs,
   playTone,
   playFanfare,
 };

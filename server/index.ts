@@ -9,12 +9,25 @@ const app = express();
 const httpServer = createServer(app);
 const io = new SocketIO(httpServer);
 const PORT = process.env.PORT || 3000;
+let isSleeping = false;
 let displayTimer: NodeJS.Timeout;
 
 const startSleepTimer = () => {
   displayTimer = setInterval(() => {
+    isSleeping = true;
     Display.turnOff();
+    GPIO.breatheLEDs();
   }, 60000);
+};
+
+const wakeUp = () => {
+  if (isSleeping) {
+    isSleeping = false;
+    Display.turnOn();
+    GPIO.stopBreathingLEDs();
+    clearInterval(displayTimer);
+    startSleepTimer();
+  }
 };
 
 io.on("connection", (socket) => {
@@ -37,12 +50,8 @@ io.on("connection", (socket) => {
 
 GPIO.initialize({
   onButtonPress: () => {
-    clearInterval(displayTimer);
-    Display.turnOn();
-    console.log("on button press");
-    io.emit("buttonPressed", {
-      /* payload */
-    });
+    wakeUp();
+    io.emit("buttonPressed");
     startSleepTimer();
   },
 });
