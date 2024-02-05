@@ -109,6 +109,13 @@ const playFanfare = async () => {
 };
 
 const initialize = ({ onButtonPress }: GPIOInitOptions) => {
+  const testSpinAtStartup = async () => {
+    await sleep(30000); //wait for boot up
+    await spinLEDs();
+    await sleep(1000);
+    await blinkAllLEDs();
+  };
+
   turnOffAllLEDs();
   button.glitchFilter(10000);
 
@@ -120,6 +127,8 @@ const initialize = ({ onButtonPress }: GPIOInitOptions) => {
       await spinLEDs();
     }
   });
+
+  testSpinAtStartup();
 };
 
 // Cleanup function to be called on SIGINT
