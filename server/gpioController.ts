@@ -6,6 +6,7 @@ interface GPIOInitOptions {
 
 let keepSpinning = true;
 let keepBreathing = true;
+let isBreathing = false;
 let isAnimating = false;
 let randomizationInProgress = false;
 
@@ -83,8 +84,10 @@ const blinkAllLEDs = async () => {
 
 const breatheLEDs = async () => {
   if (isAnimating) return;
+  if (isBreathing) return;
   isAnimating = true;
   keepBreathing = true;
+  isBreathing = true;
 
   const maxBrightness = 128; // 50% of 255
   const step = 5; // Adjust for smoother or faster transitions
@@ -127,14 +130,15 @@ const breatheLEDs = async () => {
   }
 
   if (!keepBreathing) {
-    turnOffAllLEDs(); // Ensure LEDs are turned off if exiting early
+    stopBreathingLEDs(); // Ensure LEDs are turned off if exiting early
   }
 };
 
 const stopBreathingLEDs = async () => {
-  keepBreathing = false;
   turnOffAllLEDs();
   await sleep(200);
+  keepBreathing = false;
+  isBreathing = false;
   isAnimating = false;
 };
 

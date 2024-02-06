@@ -13,6 +13,7 @@ let isSleeping = false;
 let displayTimer: NodeJS.Timeout;
 
 const startSleepTimer = () => {
+  clearInterval(displayTimer);
   displayTimer = setInterval(() => {
     isSleeping = true;
     Display.turnOff();
