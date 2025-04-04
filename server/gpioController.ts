@@ -153,9 +153,11 @@ const testSpin = async () => {
 const silenceSpeaker = () => {
   speaker.hardwarePwmWrite(0, 0);
   speaker.digitalWrite(0);
+  speaker.mode(Gpio.INPUT);
 };
 
 const playTone = async (frequency: number, duration: number) => {
+  speaker.mode(Gpio.OUTPUT);
   speaker.hardwarePwmWrite(frequency, 500000); // 50% duty cycle
   await sleep(duration).then(() => silenceSpeaker());
 };
