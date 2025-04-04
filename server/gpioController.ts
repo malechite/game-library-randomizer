@@ -150,9 +150,14 @@ const testSpin = async () => {
   await blinkAllLEDs();
 };
 
+const silenceSpeaker = () => {
+  speaker.hardwarePwmWrite(0, 0);
+  speaker.digitalWrite(0);
+};
+
 const playTone = async (frequency: number, duration: number) => {
   speaker.hardwarePwmWrite(frequency, 500000); // 50% duty cycle
-  await sleep(duration).then(() => speaker.hardwarePwmWrite(0, 0));
+  await sleep(duration).then(() => silenceSpeaker());
 };
 
 const playFanfare = async () => {
@@ -176,6 +181,7 @@ const playFanfare = async () => {
       await playTone(note.frequency, note.duration);
     }
   }
+  silenceSpeaker();
 };
 
 const initialize = ({ onButtonPress }: GPIOInitOptions) => {
